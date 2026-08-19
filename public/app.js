@@ -317,6 +317,22 @@ function triggerAtCoordinate(x, y, shouldBroadcast = true) {
 function handleTriggerMessage(data) {
   const { style, activeTheme: msgTheme, config } = data;
   
+  // Show in-camera celebration banner if present
+  const banner = document.getElementById('camera-celebration-banner');
+  const bannerText = document.getElementById('camera-banner-text');
+  if (banner && bannerText) {
+    if (style === 'classic') bannerText.innerText = '🎉 Congratulations!';
+    else if (style === 'fireworks') bannerText.innerText = '🎆 Amazing Work!';
+    else if (style === 'cannons') bannerText.innerText = '🚀 Super Star!';
+    else if (style === 'rain') bannerText.innerText = '🌧️ Celebration Time!';
+    else bannerText.innerText = '✨ Great Job!';
+    
+    banner.classList.add('active');
+    setTimeout(() => {
+      banner.classList.remove('active');
+    }, 4500);
+  }
+
   // Sync theme temporarily
   const oldTheme = activeTheme;
   if (msgTheme) activeTheme = msgTheme;
