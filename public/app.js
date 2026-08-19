@@ -490,29 +490,13 @@ async function initializeZoomApp() {
             }).catch(() => {});
           };
 
-          sendLogToSidebar('Camera view loaded. Waiting for rendered app opened event...');
+          sendLogToSidebar('Camera context loaded. Preparing drawWebView...');
 
-          // Wait until rendering engine CEF is ready before drawing
-          zoomSdk.onRenderedAppOpened(async () => {
+          const performDraw = async () => {
             try {
-              sendLogToSidebar('onRenderedAppOpened fired. Querying user context...');
+              const width = Math.floor(window.innerWidth || 1280);
+              const height = Math.floor(window.innerHeight || 720);
               
-              // 1. Get local participant UUID
-              const userContext = await zoomSdk.getUserContext();
-              const localParticipantId = userContext.participantId;
-              
-              sendLogToSidebar(`Got userContext. participantId: ${localParticipantId}`);
-              
-              const { participants } = await zoomSdk.getMeetingParticipants();
-              const localParticipant = participants.find(p => p.participantId === localParticipantId);
-              const localParticipantUUID = localParticipant ? localParticipant.participantUUID : '';
-              
-              sendLogToSidebar(`Resolved UUID: ${localParticipantUUID || 'NOT FOUND'}`);
-              
-              const width = window.innerWidth || 1280;
-              const height = window.innerHeight || 720;
-              
-              // 3. Draw transparent WebView on top at zIndex: 2
               await zoomSdk.drawWebView({
                 webviewId: 'camera',
                 x: 0,
@@ -521,11 +505,24 @@ async function initializeZoomApp() {
                 height: height,
                 zIndex: 2
               });
-              sendLogToSidebar('Successfully called drawWebView');
+              sendLogToSidebar('drawWebView called successfully!');
             } catch (err) {
-              sendLogToSidebar(`Error in camera rendering: ${err.message || String(err)}`, true);
+              sendLogToSidebar(`Error calling drawWebView: ${err.message || String(err)}`, true);
             }
-          });
+          };
+
+          // Proper event listener subscription
+          if (zoomSdk.addEventListener) {
+            zoomSdk.addEventListener('onRenderedAppOpened', async () => {
+              sendLogToSidebar('onRenderedAppOpened event received!');
+              await performDraw();
+            });
+          }
+
+          // Fallback draw call in case event fired during CEF initialization
+          setTimeout(() => {
+            performDraw();
+          }, 600);
           
           return; // Skip normal UI status cards render since they are hidden
         }
