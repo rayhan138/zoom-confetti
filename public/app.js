@@ -512,21 +512,6 @@ async function initializeZoomApp() {
               const width = window.innerWidth || 1280;
               const height = window.innerHeight || 720;
               
-              // 2. Draw webcam video at zIndex: 1
-              if (localParticipantUUID) {
-                await zoomSdk.drawParticipant({
-                  participantUUID: localParticipantUUID,
-                  x: 0,
-                  y: 0,
-                  width: width,
-                  height: height,
-                  zIndex: 1
-                });
-                sendLogToSidebar('Successfully called drawParticipant');
-              } else {
-                sendLogToSidebar('No local participant UUID found, skipping drawParticipant', true);
-              }
-              
               // 3. Draw transparent WebView on top at zIndex: 2
               await zoomSdk.drawWebView({
                 webviewId: 'camera',
