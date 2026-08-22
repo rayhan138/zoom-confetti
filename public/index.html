@@ -6,10 +6,10 @@
   <title>Zoom Confetti App</title>
   
   
-  <!-- Premium Typography -->
+  <!-- App typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
   <!-- Custom Stylesheet -->
   <link rel="stylesheet" href="/style.css">
@@ -27,123 +27,129 @@
     
     <div class="app-container">
       
-      <!-- Header -->
       <header class="app-header">
-        <div class="logo-container">🎉 Zoom Confetti</div>
-        <p class="app-description">Lightweight celebration panel for hosts and teachers.</p>
-        <button id="btn-share" class="action-btn-primary share-btn" style="max-width: 240px; margin: 12px auto 0 auto; background: linear-gradient(135deg, #3b82f6 0%, #a855f7 100%); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);">🖥️ Share App Screen</button>
+        <div class="topbar">
+          <div class="brand-lockup">
+            <span class="app-mark" aria-hidden="true"></span>
+            <span class="brand-name">Class Confetti</span>
+          </div>
+          <button id="btn-share" class="share-btn">Share</button>
+        </div>
+        <div class="hero-copy">
+          <h1>A quiet<br>little win.</h1>
+          <p class="app-description">Gentle celebration controls for live classes, tutoring, and meetings.</p>
+        </div>
       </header>
 
-      <!-- Zoom SDK Status Card -->
       <div class="glass-card zoom-status-widget">
         <div class="widget-header">
           <div id="status-indicator" class="status-indicator connecting"></div>
-          <h3 class="widget-title">Zoom Integration Status</h3>
+          <h3 class="widget-title">Camera overlay status</h3>
         </div>
         <div class="widget-body">
           <div id="status-display">
             <div class="loading-state">
               <div class="spinner"></div>
-              <p>Initializing Zoom Apps SDK...</p>
+              <p>Connecting to Zoom...</p>
             </div>
           </div>
-          <!-- Notification Banner -->
-          <div id="notification-banner" class="notification-banner" style="display: none; padding: 10px; border-radius: 6px; font-size: 0.85rem; text-align: center; font-weight: 500;"></div>
-          <button id="btn-camera-mode" class="action-btn-primary camera-btn">📹 Enable Camera Overlay Mode</button>
+          <div id="notification-banner" class="notification-banner" style="display: none;"></div>
+          <button id="btn-camera-mode" class="action-btn-primary camera-btn">Enable camera overlay</button>
+          <div class="camera-control-panel">
+            <label class="setting-toggle">
+              <input type="checkbox" id="mirror-toggle" checked>
+              <span class="toggle-track" aria-hidden="true">
+                <span class="toggle-thumb"></span>
+              </span>
+              <span class="setting-copy">
+                <span class="setting-title">Mirror camera</span>
+                <span class="setting-desc">Match your Zoom preview.</span>
+              </span>
+            </label>
+            <button id="btn-stop-camera" class="action-btn-secondary stop-camera-btn" disabled>Overlay off</button>
+          </div>
         </div>
       </div>
 
-      <!-- Confetti Dashboard Card -->
       <div class="glass-card confetti-dashboard">
-        <h3 class="section-title">Confetti Control Center</h3>
-        <p class="section-subtitle">Congratulate your students with these custom effects!</p>
+        <div class="section-label">
+          <h3 class="section-title">Quick effects</h3>
+          <span>one tap</span>
+        </div>
         
-        <!-- Preset Celebrations Grid -->
         <div class="button-grid">
-          <button id="btn-classic" class="effect-btn classic-btn">
-            <span class="btn-icon">✨</span>
-            <span class="btn-title">Classic Burst</span>
-            <span class="btn-desc">Center-stage explosion</span>
-          </button>
-
-          <button id="btn-fireworks" class="effect-btn fireworks-btn">
-            <span class="btn-icon">🎆</span>
-            <span class="btn-title">Fireworks Show</span>
-            <span class="btn-desc">5-second sky spectacle</span>
+          <button id="btn-classic" class="effect-btn classic-btn featured-effect">
+            <span class="btn-title">Nice work</span>
+            <span class="btn-desc">A warm burst for the exact moment they get it.</span>
           </button>
 
           <button id="btn-cannons" class="effect-btn cannons-btn">
-            <span class="btn-icon">🚀</span>
-            <span class="btn-title">Side Cannons</span>
-            <span class="btn-desc">Left & right stage blast</span>
+            <span class="btn-title">Side pop</span>
+            <span class="btn-desc">Bigger energy without turning class into a game show.</span>
           </button>
 
           <button id="btn-rain" class="effect-btn rain-btn">
-            <span class="btn-icon">🌧️</span>
-            <span class="btn-title">Confetti Rain</span>
-            <span class="btn-desc">Slow overhead precipitation</span>
+            <span class="btn-title">Rain</span>
+            <span class="btn-desc">A soft falling celebration for the whole answer.</span>
+          </button>
+
+          <button id="btn-fireworks" class="effect-btn fireworks-btn">
+            <span class="btn-title">Firework</span>
+            <span class="btn-desc">For the end-of-class win.</span>
+          </button>
+
+          <button id="btn-custom" class="effect-btn custom-effect-btn">
+            <span class="btn-title">Custom</span>
+            <span class="btn-desc">Change the amount in plain language.</span>
           </button>
         </div>
 
         <hr class="divider">
 
-        <!-- Audio Settings Switch -->
-        <div class="audio-control-section">
-          <label class="audio-switch-label">
-            <input type="checkbox" id="audio-toggle" checked>
-            <span class="audio-switch-text">🔊 Enable Audio Celebration pop chimes</span>
-          </label>
-        </div>
-
-        <hr class="divider">
-
-        <!-- Palette Themes -->
         <div class="theme-selector-section">
-          <h4 class="control-label">Confetti Color Palette</h4>
+          <div class="section-label compact">
+            <h4 class="control-label">Colors</h4>
+            <span>kept soft</span>
+          </div>
           <div class="theme-list">
-            <button class="theme-btn active" data-theme="rainbow">
-              <span class="theme-name">rainbow</span>
+            <button class="theme-btn active" data-theme="rainbow" aria-label="Happy colors">
+              <span class="theme-name">Happy</span>
               <div class="theme-colors-preview">
-                <span class="color-dot" style="background-color: #FF0000"></span>
-                <span class="color-dot" style="background-color: #FFFF00"></span>
-                <span class="color-dot" style="background-color: #0000FF"></span>
-                <span class="color-dot" style="background-color: #8B00FF"></span>
+                <span class="color-dot" style="background-color: #ec7a7a"></span>
+                <span class="color-dot" style="background-color: #e8b65b"></span>
+                <span class="color-dot" style="background-color: #88c4a4"></span>
               </div>
             </button>
-            <button class="theme-btn" data-theme="sunset">
-              <span class="theme-name">sunset</span>
+            <button class="theme-btn" data-theme="sunset" aria-label="Warm colors">
+              <span class="theme-name">Warm</span>
               <div class="theme-colors-preview">
-                <span class="color-dot" style="background-color: #FF5E62"></span>
-                <span class="color-dot" style="background-color: #FF9966"></span>
-                <span class="color-dot" style="background-color: #FFD97D"></span>
-                <span class="color-dot" style="background-color: #EA2027"></span>
+                <span class="color-dot" style="background-color: #9d4f4f"></span>
+                <span class="color-dot" style="background-color: #d59b55"></span>
+                <span class="color-dot" style="background-color: #f2d392"></span>
               </div>
             </button>
-            <button class="theme-btn" data-theme="ocean">
-              <span class="theme-name">ocean</span>
+            <button class="theme-btn" data-theme="ocean" aria-label="Calm colors">
+              <span class="theme-name">Calm</span>
               <div class="theme-colors-preview">
-                <span class="color-dot" style="background-color: #00c6ff"></span>
-                <span class="color-dot" style="background-color: #0072ff"></span>
-                <span class="color-dot" style="background-color: #00F2FE"></span>
-                <span class="color-dot" style="background-color: #0575E6"></span>
+                <span class="color-dot" style="background-color: #426e86"></span>
+                <span class="color-dot" style="background-color: #77a7d9"></span>
+                <span class="color-dot" style="background-color: #88c4a4"></span>
               </div>
             </button>
-            <button class="theme-btn" data-theme="neon">
-              <span class="theme-name">neon</span>
+            <button class="theme-btn" data-theme="neon" aria-label="Bright colors">
+              <span class="theme-name">Bright</span>
               <div class="theme-colors-preview">
                 <span class="color-dot" style="background-color: #39FF14"></span>
                 <span class="color-dot" style="background-color: #00FFFF"></span>
                 <span class="color-dot" style="background-color: #FF007F"></span>
-                <span class="color-dot" style="background-color: #FF00FF"></span>
               </div>
             </button>
-            <button class="theme-btn" data-theme="cyberpunk">
-              <span class="theme-name">cyberpunk</span>
+            <button class="theme-btn" data-theme="cyberpunk" aria-label="Evening colors">
+              <span class="theme-name">Evening</span>
               <div class="theme-colors-preview">
-                <span class="color-dot" style="background-color: #f72585"></span>
-                <span class="color-dot" style="background-color: #7209b7"></span>
-                <span class="color-dot" style="background-color: #3f37c9"></span>
-                <span class="color-dot" style="background-color: #4cc9f0"></span>
+                <span class="color-dot" style="background-color: #2a2430"></span>
+                <span class="color-dot" style="background-color: #8f5579"></span>
+                <span class="color-dot" style="background-color: #e8b65b"></span>
               </div>
             </button>
           </div>
@@ -151,50 +157,57 @@
 
         <hr class="divider">
 
-        <!-- Custom sliders -->
+        <div class="audio-control-section">
+          <label class="audio-switch-label">
+            <input type="checkbox" id="audio-toggle" checked>
+            <span class="audio-switch-text">Soft sound</span>
+          </label>
+        </div>
+
         <div class="custom-config-section">
-          <h4 class="control-label">Custom Confetti Architect</h4>
+          <div class="section-label compact">
+            <h4 class="control-label">Feel</h4>
+            <span>fine tune</span>
+          </div>
           <div class="sliders-container">
             <div class="slider-group">
               <div class="slider-header">
-                <span>Particle Count</span>
-                <span id="label-particle" class="slider-value">100 items</span>
+                <span>Amount</span>
+                <span id="label-particle" class="slider-value">240 pieces</span>
               </div>
-              <input type="range" id="slider-particle" min="10" max="300" value="100" class="styled-slider">
+              <input type="range" id="slider-particle" min="10" max="520" value="240" class="styled-slider">
             </div>
 
             <div class="slider-group">
               <div class="slider-header">
-                <span>Spread Angle</span>
-                <span id="label-spread" class="slider-value">70° width</span>
+                <span>Width</span>
+                <span id="label-spread" class="slider-value">65° width</span>
               </div>
-              <input type="range" id="slider-spread" min="10" max="360" value="70" class="styled-slider">
+              <input type="range" id="slider-spread" min="10" max="240" value="65" class="styled-slider">
             </div>
 
             <div class="slider-group">
               <div class="slider-header">
-                <span>Launch Velocity</span>
-                <span id="label-velocity" class="slider-value">45 speed</span>
+                <span>Speed</span>
+                <span id="label-velocity" class="slider-value">38 speed</span>
               </div>
-              <input type="range" id="slider-velocity" min="10" max="100" value="45" class="styled-slider">
+              <input type="range" id="slider-velocity" min="10" max="80" value="38" class="styled-slider">
             </div>
 
             <div class="slider-group">
               <div class="slider-header">
-                <span>Gravity Force</span>
-                <span id="label-gravity" class="slider-value">1.0 g</span>
+                <span>Fall</span>
+                <span id="label-gravity" class="slider-value">0.9 g</span>
               </div>
-              <input type="range" id="slider-gravity" min="0.1" max="3.0" step="0.1" value="1.0" class="styled-slider">
+              <input type="range" id="slider-gravity" min="0.1" max="2.0" step="0.1" value="0.9" class="styled-slider">
             </div>
           </div>
-
-          <button id="btn-custom" class="action-btn-primary launch-custom-btn">💥 Launch Custom Confetti</button>
         </div>
 
       </div>
 
       <div class="fullscreen-info-tip">
-        💡 Tip: Click anywhere on the empty screen background to fire a local burst!
+        Tip: tap the empty background for a small local burst.
       </div>
     </div>
   </div>
@@ -202,18 +215,18 @@
   <!-- Camera Mode Overlay Elements (Visible on host video) -->
   <div id="camera-overlay-badge" class="camera-overlay-badge" style="display: none;">
     <span class="badge-dot"></span>
-    <span id="camera-badge-text">🎉 Confetti Mode Active</span>
+    <span id="camera-badge-text">Confetti mode active</span>
   </div>
 
   <div id="camera-celebration-banner" class="camera-celebration-banner" style="display: none;">
     <div class="banner-content">
-      <span class="banner-icon">🌟</span>
-      <span id="camera-banner-text" class="banner-text">Great Job! Keep it up!</span>
-      <span class="banner-icon">🌟</span>
+      <span class="banner-icon">Nice</span>
+      <span id="camera-banner-text" class="banner-text">Great job. Keep going.</span>
+      <span class="banner-icon">work</span>
     </div>
   </div>
 
   <!-- Custom Application Script -->
-  <script src="/app.js"></script>
+  <script src="/app.js?v=human-dark-ui-stop-button-2026-08-22-01"></script>
 </body>
 </html>

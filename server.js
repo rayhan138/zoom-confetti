@@ -12,9 +12,54 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const SESSION_SECRET = process.env.SESSION_SECRET || 'zoom-confetti-dev-only-secret';
+const REQUIRED_ZOOM_ENV = ['ZM_CLIENT_ID', 'ZM_CLIENT_SECRET', 'ZM_REDIRECT_URL'];
 
+if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
+  throw new Error('SESSION_SECRET is required when NODE_ENV=production');
+}
+
+let latestConfettiEventId = Date.now();
+let latestConfettiEvent = {
+  id: latestConfettiEventId,
+  style: null,
+  activeTheme: null,
+  config: null,
+  createdAt: null,
+};
+let cameraOverlaySettings = {
+  version: 0,
+  mirror: true,
+  updatedAt: null,
+};
+let latestCameraDensityPing = {
+  id: 0,
+  build: null,
+  phase: null,
+  isCameraSurface: null,
+  styleHint: null,
+  multiplier: null,
+  particleCount: null,
+  scaledParticleCount: null,
+  createdAt: null,
+  userAgent: null,
+};
+
+app.disable('x-powered-by');
 app.use(express.json());
-app.use(cookieParser(process.env.SESSION_SECRET || 'zoom-confetti-secret'));
+app.use(cookieParser(SESSION_SECRET));
+
+function getMissingZoomEnv() {
+  return REQUIRED_ZOOM_ENV.filter((key) => !process.env[key]);
+}
+
+function sendMissingZoomEnv(res, missing) {
+  return res.status(500).json({
+    error: 'Zoom OAuth is not configured',
+    missing,
+    hint: 'Copy .env.example to .env and set the Zoom Marketplace credentials and redirect URL.',
+  });
+}
 
 // OWASP Security Headers required by Zoom
 app.use((req, res, next) => {
@@ -34,14 +79,34 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve static files from public directory
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve static files from public directory. During Zoom App development the
+// desktop client can cache app assets aggressively, so keep them fresh.
+app.use(express.static(path.join(__dirname, 'public'), {
+  etag: false,
+  lastModified: false,
+  setHeaders: (res) => {
+    res.setHeader('Cache-Control', 'no-store');
+  },
+}));
+
+app.get('/healthz', (req, res) => {
+  res.json({
+    ok: true,
+    service: 'zoom-confetti',
+    zoomOAuthConfigured: getMissingZoomEnv().length === 0,
+  });
+});
 
 /**
  * 1. OAuth Install Route
  * Redirects the user to the Zoom OAuth authorize page.
  */
 app.get('/api/zoom/install', (req, res) => {
+  const missing = getMissingZoomEnv();
+  if (missing.length > 0) {
+    return sendMissingZoomEnv(res, missing);
+  }
+
   const zoomAuthUrl = new URL('https://zoom.us/oauth/authorize');
   zoomAuthUrl.searchParams.append('response_type', 'code');
   zoomAuthUrl.searchParams.append('client_id', process.env.ZM_CLIENT_ID);
@@ -56,6 +121,11 @@ app.get('/api/zoom/install', (req, res) => {
  * We exchange this code for an access token.
  */
 app.get('/api/zoom/auth', async (req, res) => {
+  const missing = getMissingZoomEnv();
+  if (missing.length > 0) {
+    return sendMissingZoomEnv(res, missing);
+  }
+
   const code = req.query.code;
 
   if (!code) {
@@ -109,6 +179,83 @@ app.get('/api/zoom/auth', async (req, res) => {
 app.get('/api/zoom/status', (req, res) => {
   const token = req.signedCookies.zoom_access_token;
   res.json({ isAuthenticated: !!token });
+});
+
+app.post('/api/confetti/trigger', (req, res) => {
+  const allowedStyles = new Set(['classic', 'fireworks', 'cannons', 'rain', 'custom', 'coordinate']);
+  const { style, activeTheme, config } = req.body || {};
+
+  if (!allowedStyles.has(style)) {
+    return res.status(400).json({ error: 'Unknown confetti style' });
+  }
+
+  latestConfettiEvent = {
+    id: ++latestConfettiEventId,
+    style,
+    activeTheme: typeof activeTheme === 'string' ? activeTheme : 'rainbow',
+    config: config && typeof config === 'object' ? config : null,
+    createdAt: new Date().toISOString(),
+  };
+
+  res.json({ ok: true, event: latestConfettiEvent });
+});
+
+app.get('/api/confetti/latest', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.json(latestConfettiEvent);
+});
+
+app.get('/api/camera/settings', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.json(cameraOverlaySettings);
+});
+
+app.post('/api/camera/settings', (req, res) => {
+  const { mirror } = req.body || {};
+
+  if (typeof mirror !== 'boolean') {
+    return res.status(400).json({ error: 'mirror must be a boolean' });
+  }
+
+  cameraOverlaySettings = {
+    version: cameraOverlaySettings.version + 1,
+    mirror,
+    updatedAt: new Date().toISOString(),
+  };
+
+  res.json({ ok: true, settings: cameraOverlaySettings });
+});
+
+app.post('/api/camera-density/ping', (req, res) => {
+  const {
+    build,
+    phase,
+    isCameraSurface,
+    styleHint,
+    multiplier,
+    particleCount,
+    scaledParticleCount,
+  } = req.body || {};
+
+  latestCameraDensityPing = {
+    id: latestCameraDensityPing.id + 1,
+    build: typeof build === 'string' ? build.slice(0, 80) : null,
+    phase: typeof phase === 'string' ? phase.slice(0, 80) : null,
+    isCameraSurface: typeof isCameraSurface === 'boolean' ? isCameraSurface : null,
+    styleHint: typeof styleHint === 'string' ? styleHint.slice(0, 80) : null,
+    multiplier: Number.isFinite(Number(multiplier)) ? Number(multiplier) : null,
+    particleCount: Number.isFinite(Number(particleCount)) ? Number(particleCount) : null,
+    scaledParticleCount: Number.isFinite(Number(scaledParticleCount)) ? Number(scaledParticleCount) : null,
+    createdAt: new Date().toISOString(),
+    userAgent: req.get('user-agent') || null,
+  };
+
+  res.json({ ok: true, ping: latestCameraDensityPing });
+});
+
+app.get('/api/camera-density/latest', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.json(latestCameraDensityPing);
 });
 
 // Fallback for SPA Routing: Send index.html for any other non-API routes

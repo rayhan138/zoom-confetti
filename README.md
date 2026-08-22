@@ -1,63 +1,154 @@
-# 🎉 Zoom Confetti App
+# Zoom Confetti
 
-A premium, interactive celebration panel designed for teachers, presenters, and meeting hosts. Trigger multiple styles of beautiful confetti animations (Classic, Fireworks, Side Cannons, and overhead Rain) to congratulate your students or team members directly inside the Zoom client!
+A lightweight Zoom App that lets teachers, tutors, and meeting hosts trigger confetti inside a live Zoom meeting. The app has two surfaces:
 
----
+- a sidebar control panel for the host
+- a Zoom Camera Mode overlay so the celebration appears on the host video
 
-## 🛠️ Prerequisites
+The project is intentionally simple: Express serves a static frontend from `public/`, and the frontend uses the Zoom Apps SDK directly.
 
-1.  **Node.js**: Verify installation using `node -v` (version 18+ recommended).
-2.  **Zoom Developer Credentials**: Register a **General App** in the [Zoom App Marketplace](https://marketplace.zoom.us/) and obtain your **Client ID** and **Client Secret**.
-3.  **Ngrok**: Zoom Apps must be served over secure HTTPS. Download and configure [ngrok](https://ngrok.com/) to tunnel your local port.
+## Current status
 
----
+This is a working development build. It is ready for developer review and local Zoom App testing, but it is not yet production-hosted or marketplace-submitted.
 
-## 🚀 Quick Start Guide
+## Features
 
-### 1. Configure the Environment
-Create a `.env` file at the root of the project using the template in `.env.example`:
+- Host control panel with preset effects: Nice work, Side pop, Rain, Firework, and Custom
+- Zoom Camera Mode support using `runRenderingContext({ view: 'camera' })`
+- Camera overlay drawing with `drawParticipant` and `drawWebView`
+- Mirror camera preference for matching the Zoom preview
+- Turn off overlay button for closing the camera rendering context
+- Higher density confetti inside the camera canvas
+- Fallback event polling between the sidebar and camera rendering context
+
+## Tech stack
+
+- Node.js 18+
+- Express
+- Zoom Apps SDK
+- `canvas-confetti` served locally from `public/confetti.js`
+
+## Project structure
+
+```text
+.
+├── public/
+│   ├── app.js          # Zoom Apps SDK integration and confetti controls
+│   ├── confetti.js     # Local canvas-confetti library bundle
+│   ├── index.html      # App shell
+│   └── style.css       # Sidebar and camera overlay styles
+├── docs/
+│   ├── ARCHITECTURE.md
+│   ├── DEVELOPMENT.md
+│   ├── RELEASE_CHECKLIST.md
+│   └── ZOOM_MARKETPLACE_SETUP.md
+├── server.js           # Express server, OAuth callback, and local sync APIs
+├── .env.example        # Safe environment template
+└── package.json
+```
+
+## Local setup
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Create a local `.env` file:
+
+```bash
+cp .env.example .env
+```
+
+Fill in:
+
 ```env
-ZM_CLIENT_ID=your_client_id_here
-ZM_CLIENT_SECRET=your_client_secret_here
-ZM_REDIRECT_URL=https://your-ngrok-subdomain.ngrok-free.app/api/zoom/auth
-SESSION_SECRET=some_random_secret_string
+ZM_CLIENT_ID=your_zoom_client_id_here
+ZM_CLIENT_SECRET=your_zoom_client_secret_here
+ZM_REDIRECT_URL=https://your-public-domain.example/api/zoom/auth
+SESSION_SECRET=replace_with_a_long_random_secret
 PORT=3000
 ```
 
-### 2. Start the Secure Tunnel
-Zoom requires secure connection frames. Open a terminal and start ngrok on port 3000:
+Start the app:
+
+```bash
+npm run dev
+```
+
+The local server runs at:
+
+```text
+http://127.0.0.1:3000
+```
+
+## HTTPS tunnel for Zoom local testing
+
+Zoom Apps must be served over HTTPS. Use one of these:
+
+```bash
+cloudflared tunnel --url http://127.0.0.1:3000
+```
+
+or:
+
 ```bash
 ngrok http 3000
 ```
-Copy the secure HTTPS URL provided by ngrok (e.g. `https://1234-abcd.ngrok-free.app`). Ensure this URL (with `/api/zoom/auth` appended) matches the `ZM_REDIRECT_URL` in your `.env` file!
 
-### 3. Update Zoom Marketplace Settings
-In your Zoom App Marketplace console (where you got your credentials):
-1.  Navigate to **Basic Information** / **OAuth Information**.
-2.  Set **Home URL** to your ngrok URL: `https://your-ngrok-subdomain.ngrok-free.app`
-3.  Set **OAuth Redirect URL** to: `https://your-ngrok-subdomain.ngrok-free.app/api/zoom/auth`
-4.  Navigate to **Features** -> **Zoom App** (ensure it's toggled ON).
-5.  Set **Home URL** and **Redirect URL** there as well.
+Use the generated HTTPS domain in Zoom Marketplace.
 
-### 4. Run the Application
-Install dependencies, compile the frontend, and run the Express server:
-```bash
-# Install dependencies
-npm install
+## Zoom Marketplace development URLs
 
-# Compile the React frontend
-npm run build
+If your public tunnel is:
 
-# Start the Express server
-node server.js
+```text
+https://example.trycloudflare.com
 ```
-The server will boot up on `http://localhost:3000`. You can now open your ngrok URL in a browser to test the client in **Browser Sandbox Mode**, or load it directly in the Zoom Client to run the integrated app!
 
----
+then configure:
 
-## 🎮 Features
+```text
+Home URL:
+https://example.trycloudflare.com
 
-*   **Preset Celebrations**: Quick-trigger buttons for Classic Bursts, Fireworks Shows, Side Cannons, and overhead Confetti Rain.
-*   **Custom Designer**: Custom sliders to control particle count, launch speed, spread angle, gravity, and themed color palettes (Rainbow, Sunset, Ocean, Neon, Cyberpunk).
-*   **Background Click Burst**: Click anywhere on the empty screen background to fire local, coordinate-based blasts.
-*   **Status Panel**: Automatically detects and displays connection state and context details when loaded inside the Zoom client.
+OAuth Redirect URL:
+https://example.trycloudflare.com/api/zoom/auth
+
+OAuth Allow List:
+https://example.trycloudflare.com
+
+Domain Allow List:
+example.trycloudflare.com
+appssdk.zoom.us
+```
+
+See [docs/ZOOM_MARKETPLACE_SETUP.md](docs/ZOOM_MARKETPLACE_SETUP.md) for the full checklist.
+
+## Verify before sharing
+
+Run:
+
+```bash
+npm run check
+```
+
+Make sure these files are never committed:
+
+- `.env`
+- tunnel logs
+- local screenshots or recordings
+- `tools/cloudflared.exe`
+
+## Notes for reviewers
+
+The most important logic lives in `public/app.js`:
+
+- Zoom SDK configuration
+- camera rendering context startup/shutdown
+- `drawParticipant` / `drawWebView`
+- sidebar-to-camera confetti messaging
+- camera-density scaling
+
+Start with [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) if you want to understand the flow before reading the code.
